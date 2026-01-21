@@ -24,6 +24,21 @@ st.sidebar.title("📅 Menu")
 page = st.sidebar.radio("Go to", ["Schedule", "Expenses", "Dashboard"])
 
 # -------------------------------
+# Auto-delete past schedules
+# -------------------------------
+from datetime import datetime
+
+now = datetime.now()
+if not st.session_state.schedules.empty:
+    def is_future(row):
+        end_dt = datetime.combine(row["Date"], row["End"])
+        return end_dt >= now
+
+    st.session_state.schedules = st.session_state.schedules[
+        st.session_state.schedules.apply(is_future, axis=1)
+    ].reset_index(drop=True)
+
+# -------------------------------
 # Schedule Page
 # -------------------------------
 if page == "Schedule":
@@ -112,4 +127,3 @@ elif page == "Dashboard":
 
     st.subheader("💡 Tips")
     st.write("You can deploy this app directly on Streamlit Community Cloud. For persistence, consider using CSV files or a database (SQLite).")
-
