@@ -10,6 +10,24 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 st.title("Todoリスト管理アプリ")
 import pandas as pd
 from datetime import date, time
+# -------------------------------
+# Auto-delete past schedules (Supabase)
+# -------------------------------
+now = datetime.now()
+
+# 今日より前の日付は削除
+supabase.table("schedules") \
+    .delete() \
+    .lt("date", now.date().isoformat()) \
+    .execute()
+
+# 今日で、終了時刻が過ぎたものを削除
+supabase.table("schedules") \
+    .delete() \
+    .eq("date", now.date().isoformat()) \
+    .lt("end_time", now.time().strftime("%H:%M:%S")) \
+    .execute()
+
 
 st.set_page_config(page_title="Daily Schedule & Expense Manager", layout="wide")
 
