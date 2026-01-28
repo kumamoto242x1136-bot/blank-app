@@ -1,19 +1,41 @@
-# 🎈 Blank app template
+# 📅💰 Daily Schedule & Expense Manager
 
-A simple Streamlit app template for you to modify!
+Streamlit と Supabase を連携して作成した  
+**スケジュール管理 + 支出管理アプリ** です。
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+- スケジュールと支出データは **Supabase に永続保存**
+- ページを更新してもデータは消えません
+- **終了時刻を過ぎたスケジュールは自動で削除** されます
 
-### How to run it on your own machine
+---
 
-1. Install the requirements
+## 🚀 機能概要
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+### 🗓 スケジュール管理
+- 日付・開始時刻・終了時刻・タイトル・カテゴリ・メモを登録
+- 終了時刻を過ぎたスケジュールは自動削除
+- Supabase に保存されるため、再読み込みしても保持される
 
-2. Run the app
+### 💰 支出管理
+- 日付・項目・カテゴリ・金額・メモを登録
+- 支出データを Supabase に保存
+- カテゴリ別の集計表示に対応
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+### 📊 ダッシュボード
+- カテゴリ別の支出合計をグラフ表示
+- 当日のスケジュール一覧を表示
+
+---
+
+## 🛠 使用技術
+
+- **Python**
+- **Streamlit**
+- **Supabase (PostgreSQL)**
+- pandas
+
+---
+
+## 📁 ディレクトリ構成
+
+
