@@ -67,8 +67,8 @@ if page == "Schedule":
         note = st.text_area("Note")
         submitted = st.form_submit_button("Add Schedule")
 
-        if submitted:
-    supabase.table("schedules").insert({
+    if submitted:
+        supabase.table("schedules").insert({
         "date": str(s_date),
         "start_time": str(s_start),
         "end_time": str(s_end),
