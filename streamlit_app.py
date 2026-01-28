@@ -9,7 +9,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 st.title("Todoリスト管理アプリ")
 import pandas as pd
-from datetime import date, time
+from datetime import datetime
 # -------------------------------
 # Auto-delete past schedules (Supabase)
 # -------------------------------
