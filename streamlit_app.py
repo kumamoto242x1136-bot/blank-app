@@ -68,13 +68,16 @@ if page == "Schedule":
         submitted = st.form_submit_button("Add Schedule")
 
         if submitted:
-            new_row = pd.DataFrame([[s_date, s_start, s_end, title, category, note]],
-                                   columns=st.session_state.schedules.columns)
-            st.session_state.schedules = pd.concat([
-                st.session_state.schedules, new_row
-            ], ignore_index=True)
-            st.success("Schedule added")
+    supabase.table("schedules").insert({
+        "date": str(s_date),
+        "start_time": str(s_start),
+        "end_time": str(s_end),
+        "title": title,
+        "category": category,
+        "note": note
+    }).execute()
 
+    st.success("Schedule added to database")
     st.subheader("📋 Schedule List")
     st.dataframe(st.session_state.schedules, use_container_width=True)
 
