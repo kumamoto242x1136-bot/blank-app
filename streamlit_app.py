@@ -1,4 +1,13 @@
 import streamlit as st
+from supabase import create_client
+
+# Supabase情報
+SUPABASE_URL = "https://lwemgiikifsdtgmbumkx.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZW1naWlraWZzZHRnbWJ1bWt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNTA3MDYsImV4cCI6MjA4NDcyNjcwNn0.qrW-LLC858vPOqSG6tS5QrIr4je-2uhyM1ZkI6CFl50"
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+st.title("Todoリスト管理アプリ")
 import pandas as pd
 from datetime import date, time
 
