@@ -18,13 +18,13 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # -------------------------------
-# 自動削除（スケジュール）
+# 自動削除（DB側）
 # -------------------------------
 now = datetime.now()
 
-# 過去日付のスケジュールを削除
+# 過去日付のスケジュール削除
 supabase.table("schedules").delete().lt("date", now.date().isoformat()).execute()
-# 今日で終了時間を過ぎたスケジュールを削除
+# 今日の終了時間が過ぎたスケジュール削除
 supabase.table("schedules").delete().eq("date", now.date().isoformat()).lt("end_time", now.time().strftime("%H:%M:%S")).execute()
 
 # -------------------------------
@@ -58,8 +58,8 @@ if page == "Schedule":
         if submitted:
             supabase.table("schedules").insert({
                 "date": str(s_date),
-                "start_time": str(s_start),
-                "end_time": str(s_end),
+                "start_time": s_start.strftime("%H:%M:%S"),
+                "end_time": s_end.strftime("%H:%M:%S"),
                 "title": title,
                 "category": category,
                 "note": note
@@ -71,15 +71,13 @@ if page == "Schedule":
     response = supabase.table("schedules").select("*").execute()
     if response.data:
         df = pd.DataFrame(response.data)
-        # 終了時間が過ぎたものは表示しない
-        upcoming = []
-        now = datetime.now()
-        for _, row in df.iterrows():
-            end_dt = datetime.combine(pd.to_datetime(row["date"]).date(), pd.to_datetime(row["end_time"]).time())
-            if end_dt >= now:
-                upcoming.append(row)
-        if upcoming:
-            st.dataframe(pd.DataFrame(upcoming), use_container_width=True)
+
+        # 終了時間をdatetimeに変換
+        df["end_datetime"] = pd.to_datetime(df["date"] + " " + df["end_time"])
+        df = df[df["end_datetime"] >= now]
+
+        if not df.empty:
+            st.dataframe(df[["date","start_time","end_time","title","category","note"]], use_container_width=True)
         else:
             st.info("No upcoming schedules!")
     else:
@@ -148,15 +146,12 @@ elif page == "Dashboard":
     response = supabase.table("schedules").select("*").eq("date", str(date.today())).execute()
     if response.data:
         df = pd.DataFrame(response.data)
-        # 終了時間が過ぎたものは非表示
         now = datetime.now()
-        upcoming = []
-        for _, row in df.iterrows():
-            end_dt = datetime.combine(pd.to_datetime(row["date"]).date(), pd.to_datetime(row["end_time"]).time())
-            if end_dt >= now:
-                upcoming.append(row)
-        if upcoming:
-            st.dataframe(pd.DataFrame(upcoming), use_container_width=True)
+        df["end_datetime"] = pd.to_datetime(df["date"] + " " + df["end_time"])
+        df = df[df["end_datetime"] >= now]
+
+        if not df.empty:
+            st.dataframe(df[["date","start_time","end_time","title","category","note"]], use_container_width=True)
         else:
             st.info("No upcoming schedules for today")
     else:
