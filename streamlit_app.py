@@ -6,7 +6,7 @@ from datetime import date, time, datetime
 # -------------------------------
 # ページ設定
 # -------------------------------
-st.set_page_config(page_title="スケジュール・家計管理アプリ", layout="wide")
+st.set_page_config(page_title="スケジュール・家計簿アプリ", layout="wide")
 
 # -------------------------------
 # Supabase 接続
@@ -19,7 +19,7 @@ supabase = create_client(
 # -------------------------------
 # タイトル
 # -------------------------------
-st.title("スケジュール・家計管理アプリ")
+st.title("スケジュール・家計簿アプリ")
 
 # -------------------------------
 # セッション初期化
@@ -36,7 +36,7 @@ if "transactions" not in st.session_state:
 st.sidebar.title("メニュー")
 page = st.sidebar.radio(
     "画面選択",
-    ["スケジュール管理", "収入・支出管理", "ダッシュボード"]
+    ["スケジュール管理", "収入・支出管理", "カレンダー", "ダッシュボード"]
 )
 
 # -------------------------------
@@ -158,3 +158,79 @@ elif page == "ダッシュボード":
             st.dataframe(pd.DataFrame(data), use_container_width=True)
         else:
             st.info("本日の予定はありません")
+elif page == "カレンダー":
+    st.header("カレンダー（予定・収支一覧）")
+
+    # 表示する年月を選択
+    col1, col2 = st.columns(2)
+    with col1:
+        year = st.number_input("年", value=date.today().year, step=1)
+    with col2:
+        month = st.number_input("月", value=date.today().month, min_value=1, max_value=12)
+
+    # Supabaseからデータ取得
+    schedules = supabase.table("schedules").select("*").execute().data
+    transactions = supabase.table("transactions").select("*").execute().data
+
+    df_s = pd.DataFrame(schedules)
+    df_t = pd.DataFrame(transactions)
+
+    if df_s.empty and df_t.empty:
+        st.info("データがありません")
+    else:
+        if not df_s.empty:
+            df_s["date"] = pd.to_datetime(df_s["date"]).dt.date
+
+        if not df_t.empty:
+            df_t["date"] = pd.to_datetime(df_t["date"]).dt.date
+            df_t["signed_amount"] = df_t.apply(
+                lambda x: x["amount"] if x["type"] == "収入" else -x["amount"],
+                axis=1
+            )
+
+        # 月で絞り込み
+        start_date = date(int(year), int(month), 1)
+        if month == 12:
+            end_date = date(int(year) + 1, 1, 1)
+        else:
+            end_date = date(int(year), int(month) + 1, 1)
+
+        df_s_month = df_s[(df_s["date"] >= start_date) & (df_s["date"] < end_date)] if not df_s.empty else pd.DataFrame()
+        df_t_month = df_t[(df_t["date"] >= start_date) & (df_t["date"] < end_date)] if not df_t.empty else pd.DataFrame()
+
+        # 日別収支
+        daily_balance = {}
+        if not df_t_month.empty:
+            daily_balance = df_t_month.groupby("date")["signed_amount"].sum().to_dict()
+
+        # 月間収支
+        monthly_total = df_t_month["signed_amount"].sum() if not df_t_month.empty else 0
+
+        st.subheader("月間収支合計")
+        st.metric(label="合計（円）", value=f"{monthly_total:+,}")
+
+        st.divider()
+        st.subheader("日別一覧")
+
+        # 日付ごとに表示（カレンダー風）
+        current = start_date
+        while current < end_date:
+            st.markdown(f"### {current}")
+
+            # 予定
+            day_schedules = df_s_month[df_s_month["date"] == current]
+            if not day_schedules.empty:
+                st.write("【予定】")
+                st.dataframe(
+                    day_schedules[["start_time", "end_time", "title", "category"]],
+                    use_container_width=True
+                )
+            else:
+                st.write("予定なし")
+
+            # 収支
+            balance = daily_balance.get(current, 0)
+            st.write(f"【当日の収支】 {balance:+,} 円")
+
+            st.divider()
+            current += pd.Timedelta(days=1)
