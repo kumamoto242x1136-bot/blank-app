@@ -200,7 +200,7 @@ elif page == "カレンダー":
         unsafe_allow_html=True
     )
 
-    cal = calendar.monthcalendar(year, month)
+cal = calendar.monthcalendar(year, month)
 
 for week in cal:
     cols = st.columns(7)
