@@ -5,31 +5,31 @@ from supabase import create_client
 import calendar
 
 # -------------------------------
-# Page config
+# ページ設定
 # -------------------------------
 st.set_page_config(
-    page_title="Schedule & Money Manager",
+    page_title="スケジュール＆家計管理アプリ",
     layout="wide"
 )
 
 # -------------------------------
-# Supabase connection
+# Supabase 接続
 # -------------------------------
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # -------------------------------
-# Sidebar
+# サイドバー
 # -------------------------------
-st.sidebar.title("📅 Menu")
+st.sidebar.title("メニュー")
 page = st.sidebar.radio(
-    "Go to",
-    ["Schedule", "Expenses", "Income", "Calendar", "Dashboard"]
+    "ページ選択",
+    ["予定管理", "支出管理", "収入管理", "カレンダー", "ダッシュボード"]
 )
 
 # ======================================================
-# 🗑 Auto delete past schedules
+# 過去の予定を自動削除
 # ======================================================
 now = datetime.now()
 schedules_data = supabase.table("schedules").select("*").execute().data
@@ -43,24 +43,24 @@ for s in schedules_data:
         supabase.table("schedules").delete().eq("id", s["id"]).execute()
 
 # ======================================================
-# 🗓 Schedule Page
+# 予定管理ページ
 # ======================================================
-if page == "Schedule":
-    st.title("🗓 Daily Schedule")
+if page == "予定管理":
+    st.title("予定管理")
 
     with st.form("schedule_form"):
         col1, col2, col3 = st.columns(3)
         with col1:
-            s_date = st.date_input("Date", value=date.today())
+            s_date = st.date_input("日付", value=date.today())
         with col2:
-            s_start = st.time_input("Start Time", value=time(9, 0))
+            s_start = st.time_input("開始時刻", value=time(9, 0))
         with col3:
-            s_end = st.time_input("End Time", value=time(10, 0))
+            s_end = st.time_input("終了時刻", value=time(10, 0))
 
-        title = st.text_input("Title")
-        category = st.selectbox("Category", ["Work", "Study", "Private", "Other"])
-        note = st.text_area("Note")
-        submitted = st.form_submit_button("Add Schedule")
+        title = st.text_input("予定名")
+        category = st.selectbox("カテゴリ", ["仕事", "勉強", "プライベート", "その他"])
+        note = st.text_area("メモ")
+        submitted = st.form_submit_button("予定を追加")
 
         if submitted:
             supabase.table("schedules").insert({
@@ -71,38 +71,38 @@ if page == "Schedule":
                 "category": category,
                 "note": note
             }).execute()
-            st.success("Schedule added")
+            st.success("予定を追加しました")
 
     data = supabase.table("schedules").select("*").execute().data
     if data:
         df = pd.DataFrame(data)
         df.rename(columns={
-            "date": "Date",
-            "start_time": "Start",
-            "end_time": "End",
-            "title": "Title",
-            "category": "Category",
-            "note": "Note"
+            "date": "日付",
+            "start_time": "開始",
+            "end_time": "終了",
+            "title": "予定名",
+            "category": "カテゴリ",
+            "note": "メモ"
         }, inplace=True)
         st.dataframe(df, use_container_width=True)
 
 # ======================================================
-# 💰 Expenses Page
+# 支出管理ページ
 # ======================================================
-elif page == "Expenses":
-    st.title("💰 Expenses")
+elif page == "支出管理":
+    st.title("支出管理")
 
     with st.form("expense_form"):
         col1, col2 = st.columns(2)
         with col1:
-            e_date = st.date_input("Date", value=date.today())
+            e_date = st.date_input("日付", value=date.today())
         with col2:
-            amount = st.number_input("Amount (¥)", min_value=0, step=100)
+            amount = st.number_input("金額（円）", min_value=0, step=100)
 
-        item = st.text_input("Item")
-        category = st.selectbox("Category", ["Food", "Transport", "Shopping", "Other"])
-        note = st.text_area("Note")
-        submitted = st.form_submit_button("Add Expense")
+        item = st.text_input("内容")
+        category = st.selectbox("カテゴリ", ["食費", "交通費", "買い物", "その他"])
+        note = st.text_area("メモ")
+        submitted = st.form_submit_button("支出を追加")
 
         if submitted:
             supabase.table("expenses").insert({
@@ -112,37 +112,37 @@ elif page == "Expenses":
                 "amount": int(amount),
                 "note": note
             }).execute()
-            st.success("Expense added")
+            st.success("支出を追加しました")
 
     data = supabase.table("expenses").select("*").execute().data
     if data:
         df = pd.DataFrame(data)
         df.rename(columns={
-            "date": "Date",
-            "item": "Item",
-            "category": "Category",
-            "amount": "Amount",
-            "note": "Note"
+            "date": "日付",
+            "item": "内容",
+            "category": "カテゴリ",
+            "amount": "金額",
+            "note": "メモ"
         }, inplace=True)
         st.dataframe(df, use_container_width=True)
 
 # ======================================================
-# 💵 Income Page
+# 収入管理ページ
 # ======================================================
-elif page == "Income":
-    st.title("💵 Income")
+elif page == "収入管理":
+    st.title("収入管理")
 
     with st.form("income_form"):
         col1, col2 = st.columns(2)
         with col1:
-            i_date = st.date_input("Date", value=date.today())
+            i_date = st.date_input("日付", value=date.today())
         with col2:
-            amount = st.number_input("Amount (¥)", min_value=0, step=100)
+            amount = st.number_input("金額（円）", min_value=0, step=100)
 
-        source = st.text_input("Source")
-        category = st.selectbox("Category", ["Salary", "Allowance", "Other"])
-        note = st.text_area("Note")
-        submitted = st.form_submit_button("Add Income")
+        source = st.text_input("収入源")
+        category = st.selectbox("カテゴリ", ["給料", "お小遣い", "その他"])
+        note = st.text_area("メモ")
+        submitted = st.form_submit_button("収入を追加")
 
         if submitted:
             supabase.table("income").insert({
@@ -152,31 +152,31 @@ elif page == "Income":
                 "amount": int(amount),
                 "note": note
             }).execute()
-            st.success("Income added")
+            st.success("収入を追加しました")
 
     data = supabase.table("income").select("*").execute().data
     if data:
         df = pd.DataFrame(data)
         df.rename(columns={
-            "date": "Date",
-            "source": "Source",
-            "category": "Category",
-            "amount": "Amount",
-            "note": "Note"
+            "date": "日付",
+            "source": "収入源",
+            "category": "カテゴリ",
+            "amount": "金額",
+            "note": "メモ"
         }, inplace=True)
         st.dataframe(df, use_container_width=True)
 
 # ======================================================
-# 📅 Calendar Page
+# カレンダーページ
 # ======================================================
-elif page == "Calendar":
-    st.title("📅 Calendar")
+elif page == "カレンダー":
+    st.title("カレンダー（月別予定・収支）")
 
     col1, col2 = st.columns(2)
     with col1:
-        year = st.selectbox("Year", range(2023, 2031), index=3)
+        year = st.selectbox("年", range(2023, 2031), index=3)
     with col2:
-        month = st.selectbox("Month", range(1, 13), index=date.today().month - 1)
+        month = st.selectbox("月", range(1, 13), index=date.today().month - 1)
 
     schedules = pd.DataFrame(supabase.table("schedules").select("*").execute().data)
     expenses = pd.DataFrame(supabase.table("expenses").select("*").execute().data)
@@ -196,7 +196,7 @@ elif page == "Calendar":
     color = "green" if monthly_balance >= 0 else "red"
 
     st.markdown(
-        f"<h3>{year}年 {month}月 収支：<span style='color:{color}'>¥{monthly_balance:+,}</span></h3>",
+        f"<h3>{year}年 {month}月の収支：<span style='color:{color}'>¥{monthly_balance:+,}</span></h3>",
         unsafe_allow_html=True
     )
 
@@ -217,39 +217,4 @@ elif page == "Calendar":
 
                 cols[i].markdown(
                     f"""
-                    <div style="border:1px solid #ddd; padding:6px; border-radius:6px">
-                        <b>{day}</b><br>
-                        🗓 {s_count}件<br>
-                        <span style="color:{c}; font-weight:bold">💰 {bal:+,}</span>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-    st.subheader("📊 Category Breakdown")
-
-    if not expenses.empty:
-        st.write("💸 Expenses")
-        st.pyplot(expenses.groupby("category")["amount"].sum().plot.pie(autopct="%1.1f%%").figure)
-
-    if not income.empty:
-        st.write("💵 Income")
-        st.pyplot(income.groupby("category")["amount"].sum().plot.pie(autopct="%1.1f%%").figure)
-
-# ======================================================
-# 📊 Dashboard
-# ======================================================
-elif page == "Dashboard":
-    st.title("📊 Dashboard")
-
-    expenses = supabase.table("expenses").select("*").execute().data
-    income = supabase.table("income").select("*").execute().data
-
-    total_exp = sum(e["amount"] for e in expenses) if expenses else 0
-    total_inc = sum(i["amount"] for i in income) if income else 0
-    balance = total_inc - total_exp
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Income", f"¥{total_inc:,}")
-    col2.metric("Total Expense", f"¥{total_exp:,}")
-    col3.metric("Balance", f"¥{balance:+,}")
+                    <div s
