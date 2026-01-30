@@ -8,7 +8,7 @@ import calendar
 # ページ設定
 # -------------------------------
 st.set_page_config(
-    page_title="スケジュール＆家計簿アプリ",
+    page_title="スケジュール＆家計管理アプリ",
     layout="wide"
 )
 
@@ -25,7 +25,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 st.sidebar.title("メニュー")
 page = st.sidebar.radio(
     "ページ選択",
-    ["予定", "支出", "収入", "カレンダー", "収支"]
+    ["予定管理", "支出管理", "収入管理", "カレンダー", "ダッシュボード"]
 )
 
 # ======================================================
@@ -45,8 +45,8 @@ for s in schedules_data:
 # ======================================================
 # 予定管理ページ
 # ======================================================
-if page == "予定":
-    st.title("予定")
+if page == "予定管理":
+    st.title("予定管理")
 
     with st.form("schedule_form"):
         col1, col2, col3 = st.columns(3)
@@ -89,8 +89,8 @@ if page == "予定":
 # ======================================================
 # 支出管理ページ
 # ======================================================
-elif page == "支出":
-    st.title("支出")
+elif page == "支出管理":
+    st.title("支出管理")
 
     with st.form("expense_form"):
         col1, col2 = st.columns(2)
@@ -129,8 +129,8 @@ elif page == "支出":
 # ======================================================
 # 収入管理ページ
 # ======================================================
-elif page == "収入":
-    st.title("収入")
+elif page == "収入管理":
+    st.title("収入管理")
 
     with st.form("income_form"):
         col1, col2 = st.columns(2)
@@ -200,57 +200,38 @@ elif page == "カレンダー":
         unsafe_allow_html=True
     )
 
-cal = calendar.monthcalendar(year, month)
+    cal = calendar.monthcalendar(year, month)
 
-for week in cal:
-    cols = st.columns(7)
-    for i, day in enumerate(week):
-        if day == 0:
-            cols[i].write("")
-        else:
-            d = date(year, month, day)
+    for week in cal:
+        cols = st.columns(7)
+        for i, day in enumerate(week):
+            if day == 0:
+                cols[i].write("")
+            else:
+                d = date(year, month, day)
+                s_count = schedules[schedules["date"] == d].shape[0] if not schedules.empty else 0
+                exp = expenses[expenses["date"] == d]["amount"].sum() if not expenses.empty else 0
+                inc = income[income["date"] == d]["amount"].sum() if not income.empty else 0
+                bal = inc - exp
+                c = "green" if bal >= 0 else "red"
 
-            day_schedules = schedules[schedules["date"] == d] if not schedules.empty else pd.DataFrame()
-            exp = expenses[expenses["date"] == d]["amount"].sum() if not expenses.empty else 0
-            inc = income[income["date"] == d]["amount"].sum() if not income.empty else 0
-            bal = inc - exp
-            c = "green" if bal >= 0 else "red"
-
-            with cols[i]:
-                st.markdown(f"**{day}日**")
-
-                # ---- 予定タイトルをクリック可能に ----
-                if not day_schedules.empty:
-                    for _, row in day_schedules.iterrows():
-                        key = f"schedule_{row['id']}"
-
-                        if st.button(f"📌 {row['title']}", key=key):
-                            st.session_state["selected_schedule"] = row.to_dict()
-                else:
-                    st.caption("予定なし")
-
-                st.markdown(
-                    f"<span style='color:{c}; font-weight:bold'>収支 {bal:+,} 円</span>",
+                cols[i].markdown(
+                    f"""
+                <div style="border:1px solid #ddd; padding:6px; border-radius:6px">
+                    <b>{day}日</b><br>
+                    予定：{s_count}件<br>
+                    <span style="color:{c}; font-weight:bold">収支 {bal:+,} 円</span>
+                </div>
+                """,
                     unsafe_allow_html=True
                 )
-st.divider()
-
-if "selected_schedule" in st.session_state:
-    s = st.session_state["selected_schedule"]
-
-    st.subheader("📋 予定の詳細")
-    st.write(f"📅 日付：{s['date']}")
-    st.write(f"⏰ 時間：{s['start_time']} 〜 {s['end_time']}")
-    st.write(f"📂 カテゴリ：{s['category']}")
-    st.write(f"📝 メモ：{s['note'] if s['note'] else 'なし'}")
-
 
 
 # ======================================================
 # ダッシュボード
 # ======================================================
-elif page == "収支":
-    st.title("収支")
+elif page == "ダッシュボード":
+    st.title("ダッシュボード（累計）")
 
     expenses = supabase.table("expenses").select("*").execute().data
     income = supabase.table("income").select("*").execute().data
@@ -263,3 +244,4 @@ elif page == "収支":
     col1.metric("総収入", f"¥{total_inc:,}")
     col2.metric("総支出", f"¥{total_exp:,}")
     col3.metric("差引残高", f"¥{balance:+,}")
+
