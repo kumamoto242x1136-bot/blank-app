@@ -8,7 +8,7 @@ import calendar
 # ページ設定
 # -------------------------------
 st.set_page_config(
-    page_title="スケジュール＆家計管理アプリ",
+    page_title="スケジュール＆家計簿アプリ",
     layout="wide"
 )
 
@@ -25,7 +25,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 st.sidebar.title("メニュー")
 page = st.sidebar.radio(
     "ページ選択",
-    ["予定管理", "支出管理", "収入管理", "カレンダー", "ダッシュボード"]
+    ["予定", "支出", "収入", "カレンダー", "収支"]
 )
 
 # ======================================================
@@ -45,8 +45,8 @@ for s in schedules_data:
 # ======================================================
 # 予定管理ページ
 # ======================================================
-if page == "予定管理":
-    st.title("予定管理")
+if page == "予定":
+    st.title("予定")
 
     with st.form("schedule_form"):
         col1, col2, col3 = st.columns(3)
@@ -89,8 +89,8 @@ if page == "予定管理":
 # ======================================================
 # 支出管理ページ
 # ======================================================
-elif page == "支出管理":
-    st.title("支出管理")
+elif page == "支出":
+    st.title("支出")
 
     with st.form("expense_form"):
         col1, col2 = st.columns(2)
@@ -129,8 +129,8 @@ elif page == "支出管理":
 # ======================================================
 # 収入管理ページ
 # ======================================================
-elif page == "収入管理":
-    st.title("収入管理")
+elif page == "収入":
+    st.title("収入")
 
     with st.form("income_form"):
         col1, col2 = st.columns(2)
@@ -229,8 +229,8 @@ elif page == "カレンダー":
 # ======================================================
 # ダッシュボード
 # ======================================================
-elif page == "ダッシュボード":
-    st.title("ダッシュボード（累計）")
+elif page == "収支":
+    st.title("収支")
 
     expenses = supabase.table("expenses").select("*").execute().data
     income = supabase.table("income").select("*").execute().data
