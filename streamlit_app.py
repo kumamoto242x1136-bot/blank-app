@@ -202,29 +202,49 @@ elif page == "カレンダー":
 
     cal = calendar.monthcalendar(year, month)
 
-    for week in cal:
-        cols = st.columns(7)
-        for i, day in enumerate(week):
-            if day == 0:
-                cols[i].write("")
-            else:
-                d = date(year, month, day)
-                s_count = schedules[schedules["date"] == d].shape[0] if not schedules.empty else 0
-                exp = expenses[expenses["date"] == d]["amount"].sum() if not expenses.empty else 0
-                inc = income[income["date"] == d]["amount"].sum() if not income.empty else 0
-                bal = inc - exp
-                c = "green" if bal >= 0 else "red"
+for week in cal:
+    cols = st.columns(7)
+    for i, day in enumerate(week):
+        if day == 0:
+            cols[i].write("")
+        else:
+            d = date(year, month, day)
 
-                cols[i].markdown(
-                    f"""
-                    <div style="border:1px solid #ddd; padding:6px; border-radius:6px">
-                        <b>{day}日</b><br>
-                        予定：{s_count}件<br>
-                        <span style="color:{c}; font-weight:bold">収支 {bal:+,} 円</span>
-                    </div>
-                    """,
+            day_schedules = schedules[schedules["date"] == d] if not schedules.empty else pd.DataFrame()
+            exp = expenses[expenses["date"] == d]["amount"].sum() if not expenses.empty else 0
+            inc = income[income["date"] == d]["amount"].sum() if not income.empty else 0
+            bal = inc - exp
+            c = "green" if bal >= 0 else "red"
+
+            with cols[i]:
+                st.markdown(f"**{day}日**")
+
+                # ---- 予定タイトルをクリック可能に ----
+                if not day_schedules.empty:
+                    for _, row in day_schedules.iterrows():
+                        key = f"schedule_{row['id']}"
+
+                        if st.button(f"📌 {row['title']}", key=key):
+                            st.session_state["selected_schedule"] = row.to_dict()
+                else:
+                    st.caption("予定なし")
+
+                st.markdown(
+                    f"<span style='color:{c}; font-weight:bold'>収支 {bal:+,} 円</span>",
                     unsafe_allow_html=True
                 )
+st.divider()
+
+if "selected_schedule" in st.session_state:
+    s = st.session_state["selected_schedule"]
+
+    st.subheader("📋 予定の詳細")
+    st.write(f"📅 日付：{s['date']}")
+    st.write(f"⏰ 時間：{s['start_time']} 〜 {s['end_time']}")
+    st.write(f"📂 カテゴリ：{s['category']}")
+    st.write(f"📝 メモ：{s['note'] if s['note'] else 'なし'}")
+
+
 
 # ======================================================
 # ダッシュボード
