@@ -4,9 +4,6 @@ from datetime import date, time, datetime
 from supabase import create_client
 import calendar
 
-st.write(st.secrets)
-
-
 # -------------------------------
 # Page config
 # -------------------------------
