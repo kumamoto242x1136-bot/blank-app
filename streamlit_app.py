@@ -209,17 +209,18 @@ elif page == "カレンダー":
                 cols[i].write("")
             else:
                 d = date(year, month, day)
-                s_count = schedules[schedules["date"] == d].shape[0] if not schedules.empty else 0
+                day_schedules = schedules[schedules["date"] == d] if not schedules.empty else pd.DataFrame()
+                s_titles = "<br>".join(day_schedules["title"].tolist()) if not day_schedules.empty else "なし"
                 exp = expenses[expenses["date"] == d]["amount"].sum() if not expenses.empty else 0
                 inc = income[income["date"] == d]["amount"].sum() if not income.empty else 0
                 bal = inc - exp
                 c = "green" if bal >= 0 else "red"
-
                 cols[i].markdown(
                     f"""
-                <div style="border:1px solid #ddd; padding:6px; border-radius:6px">
+                <div style="border:1px solid #ddd; padding:6px; border-radius:6px; font-size:13px">
                     <b>{day}日</b><br>
-                    予定：{s_count}件<br>
+                    <b>予定</b><br>
+                    {s_titles}<br>
                     <span style="color:{c}; font-weight:bold">収支 {bal:+,} 円</span>
                 </div>
                 """,
