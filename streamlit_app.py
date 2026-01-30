@@ -217,4 +217,29 @@ elif page == "カレンダー":
 
                 cols[i].markdown(
                     f"""
-                    <div s
+                    <div style="border:1px solid #ddd; padding:6px; border-radius:6px">
+                        <b>{day}日</b><br>
+                        予定：{s_count}件<br>
+                        <span style="color:{c}; font-weight:bold">収支 {bal:+,} 円</span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+# ======================================================
+# ダッシュボード
+# ======================================================
+elif page == "ダッシュボード":
+    st.title("ダッシュボード（累計）")
+
+    expenses = supabase.table("expenses").select("*").execute().data
+    income = supabase.table("income").select("*").execute().data
+
+    total_exp = sum(e["amount"] for e in expenses) if expenses else 0
+    total_inc = sum(i["amount"] for i in income) if income else 0
+    balance = total_inc - total_exp
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("総収入", f"¥{total_inc:,}")
+    col2.metric("総支出", f"¥{total_exp:,}")
+    col3.metric("差引残高", f"¥{balance:+,}")
