@@ -1,3 +1,6 @@
+アプリのURL：https://blank-app-amyygebsuor.streamlit.app/#2026-1-y-0
+
+
 # 📅 スケジュール＆家計簿アプリ（Streamlit + Supabase）
 
 このアプリは **Streamlit** と **Supabase** を使用した、  
