@@ -25,7 +25,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 st.sidebar.title("📅 Menu")
 page = st.sidebar.radio(
     "Go to",
-    ["スケジュール", "支出", "収入", "カレンダー", "ダッシュボード"]
+    ["Schedule", "Expenses", "Income", "Calendar", "Dashboard"]
 )
 
 # ======================================================
@@ -253,4 +253,3 @@ elif page == "Dashboard":
     col1.metric("Total Income", f"¥{total_inc:,}")
     col2.metric("Total Expense", f"¥{total_exp:,}")
     col3.metric("Balance", f"¥{balance:+,}")
-
